@@ -20,8 +20,7 @@
         #game-wrapper {
             position: relative;
             width: 100%;
-            height: 100%;
-            min-height: 550px;
+            height: 100vh;
             background: var(--lvl-bg);
             transition: background 0.8s ease;
             color: var(--mathly-grey-light);
@@ -30,16 +29,15 @@
             justify-content: center;
             align-items: center;
             overflow: hidden;
-            border-radius: inherit;
         }
 
-        #game-wrapper:fullscreen { border-radius: 0; width: 100vw; height: 100vh; }
-
+        /* Initial Game Background Tapestry */
         .bg-symbols {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             font-size: 10vw; color: rgba(255, 255, 255, 0.03);
             pointer-events: none; z-index: 0; font-weight: 900;
             display: flex; flex-wrap: wrap; justify-content: center; align-items: center;
+            overflow: hidden;
         }
 
         #game-container {
@@ -62,12 +60,13 @@
         #game-area {
             background: rgba(255, 255, 255, 0.1);
             padding: 25px; border-radius: 15px; margin-bottom: 20px;
+            min-height: 180px; display: flex; flex-direction: column; justify-content: center;
         }
         #problem-text { font-size: 1.2em; font-weight: 700; margin-bottom: 15px; min-height: 60px; line-height: 1.4; }
 
         input {
             width: 100%; padding: 12px; font-size: 1.1em; border-radius: 8px; border: 2px solid var(--mathly-blue);
-            background: rgba(0,0,0,0.4); color: white; text-align: center; margin-bottom: 10px;
+            background: rgba(0,0,0,0.4); color: white; text-align: center; margin-bottom: 10px; box-sizing: border-box;
         }
 
         .btn {
@@ -83,15 +82,13 @@
         .incorrect { color: var(--mathly-red); }
         .hidden { display: none !important; }
 
-        #levels-modal {
+        /* Overlays */
+        .overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; z-index: 10;
+            background: rgba(0,0,0,0.9); display: flex; justify-content: center; align-items: center; z-index: 100;
+            backdrop-filter: blur(5px);
         }
-        .modal-content { background: var(--mathly-grey-dark); padding: 25px; border-radius: 15px; width: 85%; }
-        .level-card {
-            background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; margin-bottom: 8px;
-            cursor: pointer; display: flex; justify-content: space-between;
-        }
+        .modal-content { background: var(--mathly-grey-dark); padding: 25px; border-radius: 15px; width: 85%; max-width: 400px; border: 2px solid var(--mathly-blue); }
     </style>
 </head>
 <body style="margin:0; padding:0;">
@@ -99,9 +96,28 @@
 <div id="game-wrapper">
     <div class="bg-symbols">Σ ∫ ∞ ≠ ≈ ± √ π α β γ Δ θ Ω</div>
     
+    <div id="rules-page" class="overlay">
+        <div class="modal-content">
+            <header>
+            <h2 id="game-title" style="color: var(--mathly-yellow); margin-bottom: 10px;">AssignmentX Number Game</h2>
+            <p>B4.1.1.1.1: Read and Write Numbers up to 100,000</p>
+             </header>
+            <h2 id="rules-title" style="color: var(--mathly-yellow); margin-top: 0; text-align: center;">📜 Game Rules</h2>
+            <div id="end-message" style="margin-bottom: 15px; text-align: center; display: none;"></div>
+            <ul id="rules-info" style="line-height: 1.6; margin: 20px 0; padding-left: 20px;">
+                <li><b>Goal:</b> Convert numbers to words and back.</li>
+                <li><b>Points:</b> Get <b>+10 points</b> per correct answer.</li>
+                <li><b>Hints:</b> Cost <b>-2 points</b> each.</li>
+                <li><b>Time:</b> 10 minutes to reach the top!</li>
+            </ul>
+            <button id="start-btn" class="btn btn-primary">Start Game!</button>
+        </div>
+    </div>
+    
     <div id="game-container">
         <header>
-            <h2 id="game-title" style="color: var(--mathly-yellow); margin-bottom: 10px;">AssignmentX Numbers Game</h2>
+            <h2 id="game-title" style="color: var(--mathly-yellow); margin-bottom: 10px;">AssignmentX Number Game</h2>
+            <p>B4.1.1.1.1: Read and Write Numbers up to 100,000</p>
         </header>
 
         <div id="stats-bar">
@@ -111,26 +127,26 @@
         </div>
 
         <div id="game-area">
-            <div id="problem-text">Press Start to Begin!</div>
-            <input type="text" id="answer-input" class="hidden" placeholder="Type answer here...">
-            <button id="submit-btn" class="btn btn-primary hidden">Submit</button>
+            <div id="game-content-box" style="visibility: hidden;">
+                <div id="problem-text">Press Start to Begin!</div>
+                <input type="text" id="answer-input" class="hidden" placeholder="Type answer here..." autocomplete="off">
+                <button id="submit-btn" class="btn btn-primary hidden">Submit</button>
+            </div>
             <div id="feedback" style="margin-top: 10px; font-weight: 700;"></div>
         </div>
-
-        <button id="start-btn" class="btn btn-primary">Start Game</button>
 
         <div id="controls">
             <button id="lvl-btn" class="btn btn-sec">Levels</button>
             <button id="hint-btn" class="btn btn-sec">Hint</button>
             <button id="mute-btn" class="btn btn-sec">Mute</button>
-            <button id="full-btn" class="btn btn-sec">Full</button>
+            <button id="pause-btn" class="btn btn-sec">Pause</button>
             <button id="reset-btn" class="btn btn-sec" style="background:var(--mathly-red)">Reset</button>
         </div>
     </div>
 
-    <div id="levels-modal">
+    <div id="levels-modal" class="overlay" style="display:none;">
         <div class="modal-content">
-            <h3 style="color: var(--mathly-yellow);">Select Level</h3><br>
+            <h3 style="color: var(--mathly-yellow);">Select Difficulty</h3><br>
             <div id="level-list"></div>
             <button onclick="document.getElementById('levels-modal').style.display='none'" class="btn btn-sec" style="margin-top:10px; width:100%;">Close</button>
         </div>
@@ -138,7 +154,10 @@
 </div>
 
 <script>
-    let state = { active: false, score: 0, level: 1, timer: 600, currentA: '', hint: '', muted: false, stars: JSON.parse(localStorage.getItem('ax_stars')) || {1:0, 2:0, 3:0} };
+    let state = { 
+        active: false, paused: false, score: 0, level: 1, timer: 600, currentA: '', hint: '', muted: false,
+        highScores: JSON.parse(localStorage.getItem('ax_high_scores')) || {1:0, 2:0, 3:0}
+    };
     let correctSynth, wrongSynth, afroBeat, isAudioInit = false;
 
     const themes = {
@@ -153,11 +172,9 @@
             await Tone.start();
             correctSynth = new Tone.DuoSynth().toDestination();
             wrongSynth = new Tone.MetalSynth({ envelope: { release: 0.2 } }).toDestination();
-            const kick = new Tone.MembraneSynth().toDestination();
-            afroBeat = new Tone.Loop(t => { kick.triggerAttackRelease("C1", "8n", t); }, "4n");
-            Tone.Transport.bpm.value = 118;
+            afroBeat = new Tone.Loop(t => { (new Tone.MembraneSynth().toDestination()).triggerAttackRelease("C1", "8n", t); }, "4n");
             isAudioInit = true;
-        } catch (e) { console.log("Audio failed to load"); }
+        } catch (e) {}
     }
 
     function normalize(s) { return s.toString().toLowerCase().replace(/[\s\-,]/g, ''); }
@@ -189,26 +206,32 @@
         document.getElementById('answer-input').value = '';
     }
 
-    function updateTheme(l) {
-        document.getElementById('game-wrapper').style.background = themes[l];
-        document.getElementById('game-title').innerText = l === 3 ? "AssignmentX Expert" : l === 2 ? "AssignmentX Intermediate" : "AssignmentX Numbers";
-    }
-
     async function start(l = 1) {
         await initAudio();
-        state.level = l; state.score = 0; state.timer = 600; state.active = true;
-        updateTheme(l);
-        document.getElementById('start-btn').classList.add('hidden');
+        state.level = l; state.score = 0; state.timer = 600; state.active = true; state.paused = false;
+        document.getElementById('game-wrapper').style.background = themes[l];
+        document.getElementById('rules-page').style.display = 'none';
+        document.getElementById('levels-modal').style.display = 'none';
         document.getElementById('answer-input').classList.remove('hidden');
         document.getElementById('submit-btn').classList.remove('hidden');
-        document.getElementById('levels-modal').style.display = 'none';
+        document.getElementById('game-content-box').style.visibility = "visible";
+        document.getElementById('feedback').innerText = '';
         if (!state.muted && afroBeat) { Tone.Transport.start(); afroBeat.start(0); }
         gen(); updateStats();
         if (state.interval) clearInterval(state.interval);
-        state.interval = setInterval(() => { state.timer--; updateStats(); if(state.timer<=0) end(); }, 1000);
+        state.interval = setInterval(() => { if(!state.paused) { state.timer--; updateStats(); if(state.timer<=0) end(); } }, 1000);
+    }
+
+    function togglePause() {
+        if (!state.active) return;
+        state.paused = !state.paused;
+        document.getElementById('pause-btn').innerText = state.paused ? "Resume" : "Pause";
+        document.getElementById('game-content-box').style.visibility = state.paused ? "hidden" : "visible";
+        if (state.paused) Tone.Transport.pause(); else if(!state.muted) Tone.Transport.start();
     }
 
     function check() {
+        if(state.paused) return;
         const user = normalize(document.getElementById('answer-input').value);
         const f = document.getElementById('feedback');
         if (user === state.currentA) {
@@ -223,11 +246,19 @@
     }
 
     function end() {
-        state.active = false; clearInterval(state.interval); if(Tone) Tone.Transport.stop();
-        document.getElementById('problem-text').innerHTML = `DONE!<br>Final Score: ${state.score}`;
-        document.getElementById('start-btn').classList.remove('hidden');
-        document.getElementById('answer-input').classList.add('hidden');
-        document.getElementById('submit-btn').classList.add('hidden');
+        state.active = false; clearInterval(state.interval); Tone.Transport.stop();
+        const isNewRecord = state.score > state.highScores[state.level];
+        if(isNewRecord) {
+            state.highScores[state.level] = state.score;
+            localStorage.setItem('ax_high_scores', JSON.stringify(state.highScores));
+        }
+        document.getElementById('rules-title').innerText = "🏁 Finished!";
+        const endMsg = document.getElementById('end-message');
+        endMsg.style.display = 'block';
+        endMsg.innerHTML = `Score: <b>${state.score}</b><br>${isNewRecord ? '🏆 NEW RECORD!' : 'Best: ' + state.highScores[state.level]}`;
+        document.getElementById('rules-info').style.display = 'none';
+        document.getElementById('rules-page').style.display = 'flex';
+        document.getElementById('start-btn').innerText = "Play Again";
     }
 
     function updateStats() {
@@ -237,32 +268,34 @@
         document.getElementById('timer-disp').innerText = `${m}:${s<10?'0':''}${s}`;
     }
 
-    function toggleFullscreen() {
-        const elem = document.getElementById('game-wrapper');
-        if (!document.fullscreenElement) {
-            if (elem.requestFullscreen) elem.requestFullscreen();
-            else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
-            else if (elem.msRequestFullscreen) elem.msRequestFullscreen();
-        } else {
-            if (document.exitFullscreen) document.exitFullscreen();
-        }
-    }
-
-    document.getElementById('start-btn').onclick = () => start(1);
+    document.getElementById('start-btn').onclick = () => {
+        document.getElementById('rules-info').style.display = 'block';
+        document.getElementById('end-message').style.display = 'none';
+        start(1);
+    };
     document.getElementById('submit-btn').onclick = check;
-    document.getElementById('full-btn').onclick = toggleFullscreen;
+    document.getElementById('pause-btn').onclick = togglePause;
     document.getElementById('lvl-btn').onclick = () => {
         const list = document.getElementById('level-list'); list.innerHTML = '';
         for (let i = 1; i <= 3; i++) {
-            const card = document.createElement('div'); card.className = 'level-card';
-            card.innerHTML = `<span>Level ${i}</span><span>⭐</span>`;
+            const card = document.createElement('div');
+            card.style.cssText = "background:rgba(255,255,255,0.05); padding:12px; border-radius:10px; margin-bottom:8px; cursor:pointer; border:1px solid var(--mathly-blue);";
+            card.innerHTML = `<b>Level ${i}</b> <span style="float:right">Best: ${state.highScores[i]}</span>`;
             card.onclick = () => start(i); list.appendChild(card);
         }
         document.getElementById('levels-modal').style.display = 'flex';
     };
-    document.getElementById('hint-btn').onclick = () => { document.getElementById('feedback').innerText = `💡 ${state.hint}`; state.score = Math.max(0, state.score - 2); updateStats(); };
-    document.getElementById('reset-btn').onclick = () => { localStorage.clear(); location.reload(); };
-    document.getElementById('mute-btn').onclick = () => { state.muted = !state.muted; document.getElementById('mute-btn').innerText = state.muted ? "Unmute" : "Mute"; if(state.muted) Tone.Transport.pause(); else if(state.active) Tone.Transport.start(); };
+    document.getElementById('hint-btn').onclick = () => { 
+        if(state.paused) return;
+        document.getElementById('feedback').innerText = `💡 ${state.hint}`; 
+        state.score = Math.max(0, state.score - 2); updateStats(); 
+    };
+    document.getElementById('reset-btn').onclick = () => { if(confirm("Reset everything?")) { localStorage.clear(); location.reload(); } };
+    document.getElementById('mute-btn').onclick = () => { 
+        state.muted = !state.muted; 
+        document.getElementById('mute-btn').innerText = state.muted ? "Unmute" : "Mute"; 
+        if(state.muted) Tone.Transport.pause(); else if(state.active && !state.paused) Tone.Transport.start(); 
+    };
     document.getElementById('answer-input').onkeydown = (e) => { if (e.key === 'Enter') check(); };
 </script>
 </body>
