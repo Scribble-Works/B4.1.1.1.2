@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AssignmentX Number Game Challenge</title>
+    <title>AssignmentX Numbers Game</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/tone@14.7.58/build/Tone.js"></script>
     <style>
-        /* CSS Variables for MATHLY Theme */
         :root {
             --mathly-grey-dark: #2c3e50;
             --mathly-grey-light: #ecf0f1;
@@ -15,915 +14,256 @@
             --mathly-green: #2ecc71;
             --mathly-red: #e74c3c;
             --mathly-yellow: #f1c40f;
-            --bg-color-1: #1a2a6c; /* Dark Blue for Gradient */
-            --bg-color-2: #2b3952; /* Darker Grey/Blue for Gradient */
-            --card-bg-light: rgba(255, 255, 255, 0.15); /* Glass-like card background */
-            --text-color: var(--mathly-grey-light);
-            --font-family: 'Inter', sans-serif;
-            --main-accent: var(--mathly-blue);
-            --header-accent: var(--mathly-yellow);
+            --lvl-bg: linear-gradient(135deg, #1a2a6c 0%, #2b3952 100%);
         }
 
-        /* Base & Global Styles */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: var(--font-family);
-        }
-
-        body {
-            /* Full-screen blue/grey gradient background */
-            background: linear-gradient(135deg, var(--bg-color-1) 0%, var(--bg-color-2) 100%);
-            color: var(--text-color);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow-y: auto;
+        #game-wrapper {
             position: relative;
-        }
-
-        /* Math Symbols Background Overlay (Aesthetic) */
-        body::before {
-            content: 'Σ ∫ ∞ ≠ ≈ ± √ π α β γ Δ θ Ω';
-            position: fixed;
-            top: 0;
-            left: 0;
             width: 100%;
             height: 100%;
-            font-size: 15vw;
-            line-height: 1.5;
-            color: rgba(255, 255, 255, 0.03); /* Very faint symbols */
-            overflow: hidden;
-            pointer-events: none;
-            z-index: 0;
-            opacity: 0.5;
-            font-weight: 900;
-        }
-
-        /* Main Game Container */
-        #game-container {
-            width: 95%; /* Mobile-First: Start with high width */
-            max-width: 600px; /* Max width for desktop/tablet */
-            margin: 20px auto;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(10px); /* Glass effect */
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            z-index: 1;
-            transition: all 0.3s ease;
-        }
-
-        /* Header */
-        header h1 {
-            text-align: center;
-            font-size: 1.8em;
-            margin-bottom: 10px;
-            color: var(--header-accent);
-            text-shadow: 0 0 5px rgba(255, 255, 0, 0.5);
-        }
-
-        header p {
-            text-align: center;
-            font-size: 1.1em;
-            margin-bottom: 15px;
-            font-weight: 700;
-        }
-
-        /* Stats/Score Area */
-        #stats-panel {
+            min-height: 550px;
+            background: var(--lvl-bg);
+            transition: background 0.8s ease;
+            color: var(--mathly-grey-light);
+            font-family: 'Inter', sans-serif;
             display: flex;
-            justify-content: space-around;
-            background: var(--card-bg-light);
-            padding: 10px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            font-weight: 700;
-        }
-
-        .stat-item {
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 1.4em;
-            color: var(--main-accent);
-        }
-
-        /* Game Area */
-        #game-area {
-            background: var(--card-bg-light);
-            padding: 20px 15px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            min-height: 150px; /* Ensure space for content */
-            display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
-            text-align: center;
+            overflow: hidden;
+            border-radius: inherit;
         }
 
-        #problem-text {
-            font-size: 1.4em;
-            margin-bottom: 15px;
-            font-weight: 700;
-            line-height: 1.4;
+        #game-wrapper:fullscreen { border-radius: 0; width: 100vw; height: 100vh; }
+
+        .bg-symbols {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            font-size: 10vw; color: rgba(255, 255, 255, 0.03);
+            pointer-events: none; z-index: 0; font-weight: 900;
+            display: flex; flex-wrap: wrap; justify-content: center; align-items: center;
         }
 
-        #answer-input {
-            padding: 10px;
-            font-size: 1.2em;
-            width: 100%;
-            max-width: 300px;
-            text-align: center;
-            border: 2px solid var(--main-accent);
-            border-radius: 8px;
-            background: rgba(0, 0, 0, 0.5);
-            color: var(--text-color);
-            margin-bottom: 10px;
-            transition: all 0.3s;
+        #game-container {
+            width: 90%; max-width: 500px; padding: 25px;
+            background: rgba(0, 0, 0, 0.35); border-radius: 20px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 1; text-align: center;
         }
 
-        #answer-input:focus {
-            outline: none;
-            box-shadow: 0 0 10px var(--main-accent);
+        #stats-bar {
+            display: flex; justify-content: space-between;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px; border-radius: 12px; margin-bottom: 20px;
         }
+        .stat-item { display: flex; flex-direction: column; }
+        .stat-label { font-size: 0.65em; text-transform: uppercase; opacity: 0.7; }
+        .stat-value { font-size: 1.1em; font-weight: 900; color: var(--mathly-blue); }
 
-        /* Control Buttons */
-        #control-panel {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
+        #game-area {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 25px; border-radius: 15px; margin-bottom: 20px;
         }
-        
-        @media (min-width: 480px) {
-            #control-panel {
-                grid-template-columns: repeat(4, 1fr);
-            }
+        #problem-text { font-size: 1.2em; font-weight: 700; margin-bottom: 15px; min-height: 60px; line-height: 1.4; }
+
+        input {
+            width: 100%; padding: 12px; font-size: 1.1em; border-radius: 8px; border: 2px solid var(--mathly-blue);
+            background: rgba(0,0,0,0.4); color: white; text-align: center; margin-bottom: 10px;
         }
 
         .btn {
-            padding: 10px 5px;
-            font-size: 0.9em;
-            font-weight: 700;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background-color 0.2s, transform 0.1s;
-            text-transform: uppercase;
+            width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: 900;
+            cursor: pointer; text-transform: uppercase; transition: 0.2s;
         }
-
-        .btn:active {
-            transform: scale(0.98);
-        }
+        .btn-primary { background: var(--mathly-green); color: var(--mathly-grey-dark); }
         
-        /* Specific Button Colors */
-        .btn-start, .btn-submit {
-            background-color: var(--mathly-green);
-            color: var(--mathly-grey-dark);
-            grid-column: span 3; /* Wider on mobile */
-        }
-        
-        .btn-submit {
-            grid-column: span 1; /* Match input width */
-            padding: 12px 10px;
-            font-size: 1em;
-            margin-bottom: 10px;
-            max-width: 300px;
-            width: 100%;
-            align-self: center;
-        }
-
-        @media (min-width: 480px) {
-            .btn-start {
-                grid-column: span 2;
-            }
-        }
-
-        .btn-stop, .btn-reset {
-            background-color: var(--mathly-red);
-            color: var(--mathly-grey-light);
-        }
-        
-        .btn-pause {
-            background-color: var(--mathly-yellow);
-            color: var(--mathly-grey-dark);
-        }
-
-        .btn-levels, .btn-hint, .btn-mute {
-            background-color: var(--mathly-blue);
-            color: var(--mathly-grey-light);
-        }
-        
-        /* Feedback Message */
-        #feedback-message {
-            margin-top: 10px;
-            font-size: 1.2em;
-            font-weight: 700;
-            min-height: 25px;
-            text-align: center;
-        }
+        #controls { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-top: 15px; }
+        .btn-sec { background: var(--mathly-blue); color: white; font-size: 0.6em; padding: 8px 1px; }
 
         .correct { color: var(--mathly-green); }
         .incorrect { color: var(--mathly-red); }
+        .hidden { display: none !important; }
 
-        /* Levels Modal */
-        .modal {
-            position: fixed;
-            z-index: 100;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.8);
-            display: none; /* Hidden by default */
-            justify-content: center;
-            align-items: center;
+        #levels-modal {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; z-index: 10;
         }
-
-        .modal-content {
-            background: linear-gradient(135deg, rgba(44, 62, 80, 0.95), rgba(52, 73, 94, 0.95));
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-            width: 90%;
-            max-width: 400px;
-            color: var(--text-color);
-            transition: all 0.3s ease;
-        }
-
-        .modal-content h2 {
-            text-align: center;
-            margin-bottom: 20px;
-            color: var(--header-accent);
-        }
-
-        .level-select-btn {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-            padding: 15px;
-            margin-bottom: 10px;
-            font-size: 1.1em;
-            background-color: var(--mathly-grey-dark);
-            color: var(--mathly-grey-light);
-            border: 2px solid var(--mathly-blue);
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .level-select-btn.locked {
-            background-color: var(--mathly-grey-dark);
-            color: rgba(255, 255, 255, 0.5);
-            border-color: var(--mathly-red);
-            cursor: not-allowed;
-        }
-        
-        .level-select-btn:not(.locked):hover {
-            background-color: var(--mathly-blue);
-        }
-        
-        .level-select-btn.unlocked-completed {
-            border-color: var(--mathly-green);
-        }
-
-        .stars {
-            color: var(--mathly-yellow);
-        }
-
-        .close-btn {
-            color: var(--mathly-red);
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-            line-height: 1;
-        }
-
-        .close-btn:hover,
-        .close-btn:focus {
-            color: white;
-            text-decoration: none;
-            cursor: pointer;
-        }
-
-        /* Hidden elements */
-        .hidden {
-            display: none !important;
+        .modal-content { background: var(--mathly-grey-dark); padding: 25px; border-radius: 15px; width: 85%; }
+        .level-card {
+            background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; margin-bottom: 8px;
+            cursor: pointer; display: flex; justify-content: space-between;
         }
     </style>
 </head>
-<body>
+<body style="margin:0; padding:0;">
 
-<div id="game-container">
-    <header>
-        <h1>AssignmentX Number Game Challenge</h1>
-        <p>B4.1.1.1.2 Read and Write Numbers up to 100,000.</p>
-    </header>
+<div id="game-wrapper">
+    <div class="bg-symbols">Σ ∫ ∞ ≠ ≈ ± √ π α β γ Δ θ Ω</div>
     
-    <div id="stats-panel">
-        <div class="stat-item">Score: <span id="score-value" class="stat-value">0</span></div>
-        <div class="stat-item">Correct: <span id="correct-count" class="stat-value">0/5</span></div>
-        <div class="stat-item">Timer: <span id="timer-value" class="stat-value">0:00</span></div>
-    </div>
-    
-    <div id="game-area" class="card-bg-light">
-        <p id="level-display" style="font-size: 1.2em; color: var(--mathly-yellow); margin-bottom: 10px;">Level 1 - Introduction</p>
-        <div id="game-content">
-            <p id="problem-text">Welcome! Click **Start** to begin the challenge.</p>
-            <input type="text" id="answer-input" placeholder="Enter your answer here..." class="hidden">
-            <button id="submit-btn" class="btn btn-submit hidden">Submit (Enter)</button>
-            <p id="feedback-message"></p>
+    <div id="game-container">
+        <header>
+            <h2 id="game-title" style="color: var(--mathly-yellow); margin-bottom: 10px;">AssignmentX Numbers</h2>
+        </header>
+
+        <div id="stats-bar">
+            <div class="stat-item"><span class="stat-label">Score</span><span id="score-disp" class="stat-value">0</span></div>
+            <div class="stat-item"><span class="stat-label">Lvl</span><span id="level-disp" class="stat-value">1</span></div>
+            <div class="stat-item"><span class="stat-label">Time</span><span id="timer-disp" class="stat-value">10:00</span></div>
+        </div>
+
+        <div id="game-area">
+            <div id="problem-text">Press Start to Begin!</div>
+            <input type="text" id="answer-input" class="hidden" placeholder="Type answer here...">
+            <button id="submit-btn" class="btn btn-primary hidden">Submit</button>
+            <div id="feedback" style="margin-top: 10px; font-weight: 700;"></div>
+        </div>
+
+        <button id="start-btn" class="btn btn-primary">Start Game</button>
+
+        <div id="controls">
+            <button id="lvl-btn" class="btn btn-sec">Levels</button>
+            <button id="hint-btn" class="btn btn-sec">Hint</button>
+            <button id="mute-btn" class="btn btn-sec">Mute</button>
+            <button id="full-btn" class="btn btn-sec">Full</button>
+            <button id="reset-btn" class="btn btn-sec" style="background:var(--mathly-red)">Reset</button>
         </div>
     </div>
-    
-    <div id="control-panel">
-        <button id="start-btn" class="btn btn-start">Start Game</button>
-        <button id="pause-btn" class="btn btn-pause hidden">Pause</button>
-        <button id="stop-btn" class="btn btn-stop hidden">Stop</button>
-        <button id="reset-btn" class="btn btn-reset">Reset Scores</button>
-        <button id="levels-btn" class="btn btn-levels">Levels (L)</button>
-        <button id="hint-btn" class="btn btn-hint" disabled>Hint</button>
-        <button id="mute-btn" class="btn btn-mute">Mute</button>
-    </div>
-</div>
 
-<div id="levels-modal" class="modal">
-    <div class="modal-content">
-        <span class="close-btn">&times;</span>
-        <h2>Select Level</h2>
-        <div id="level-selection-container">
-            </div>
+    <div id="levels-modal">
+        <div class="modal-content">
+            <h3 style="color: var(--mathly-yellow);">Select Level</h3><br>
+            <div id="level-list"></div>
+            <button onclick="document.getElementById('levels-modal').style.display='none'" class="btn btn-sec" style="margin-top:10px; width:100%;">Close</button>
+        </div>
     </div>
 </div>
 
 <script>
-    // --- 1. CONFIGURATION & STATE ---
-    const GAME_TIME = 10 * 60; // 10 minutes in seconds (fits 5-20 min session)
-    const QUESTIONS_PER_LEVEL = 5;
-    const WINNING_SCORE = 10; // Score required for 1 star
-    
-    let gameState = {
-        level: 1,
-        score: 0,
-        correctCount: 0,
-        timer: GAME_TIME,
-        isRunning: false,
-        isPaused: false,
-        isMuted: false,
-        intervalId: null,
-        currentProblem: null,
-        // LocalStorage persisted data
-        progress: {
-            1: 0, // Level 1 stars (0-3)
-            2: 0,
-            3: 0
-        }
+    let state = { active: false, score: 0, level: 1, timer: 600, currentA: '', hint: '', muted: false, stars: JSON.parse(localStorage.getItem('ax_stars')) || {1:0, 2:0, 3:0} };
+    let correctSynth, wrongSynth, afroBeat, isAudioInit = false;
+
+    const themes = {
+        1: "linear-gradient(135deg, #1a2a6c 0%, #2b3952 100%)",      
+        2: "linear-gradient(135deg, #4b0082 0%, #1a1a2e 100%)",      
+        3: "linear-gradient(135deg, #e67e22 0%, #d35400 100%)"       
     };
 
-    const UI = {
-        start: document.getElementById('start-btn'),
-        submit: document.getElementById('submit-btn'),
-        pause: document.getElementById('pause-btn'),
-        stop: document.getElementById('stop-btn'),
-        reset: document.getElementById('reset-btn'),
-        levels: document.getElementById('levels-btn'),
-        hint: document.getElementById('hint-btn'),
-        mute: document.getElementById('mute-btn'),
-        scoreValue: document.getElementById('score-value'),
-        correctCount: document.getElementById('correct-count'),
-        timerValue: document.getElementById('timer-value'),
-        levelDisplay: document.getElementById('level-display'),
-        problemText: document.getElementById('problem-text'),
-        answerInput: document.getElementById('answer-input'),
-        feedback: document.getElementById('feedback-message'),
-        levelsModal: document.getElementById('levels-modal'),
-        levelSelectionContainer: document.getElementById('level-selection-container'),
-        gameContent: document.getElementById('game-content')
-    };
-
-    // --- 2. LEARNING SCIENCE IMPLEMENTATION & PROBLEM GENERATION ---
-
-    const LEVELS = {
-        1: {
-            title: "Place Value Intro (1k-10k)",
-            description: "Read and write numbers up to 10,000.",
-            generate: generateLevel1Problem,
-            hintExample: "Example: 5,432 in words is 'Five thousand, four hundred and thirty-two'."
-        },
-        2: {
-            title: "Figures & Words (10k-50k)",
-            description: "Convert between figures and words up to 50,000.",
-            generate: generateLevel2Problem,
-            hintExample: "Example: 'Forty-two thousand and five' in figures is 42,005."
-        },
-        3: {
-            title: "Expanded Form & Context (up to 100k)",
-            description: "Identify place value and write numbers in expanded form up to 100,000.",
-            generate: generateLevel3Problem,
-            hintExample: "Example: The expanded form of 14,031 is 10,000 + 4,000 + 30 + 1."
-        }
-    };
-    
-    // Scaffolding: Level 1 (Easier range, explicit place value focus)
-    function generateLevel1Problem() {
-        const num = Math.floor(Math.random() * 9000) + 1000; // 1,000 to 9,999
-        const isWords = Math.random() < 0.5;
-        let question, answer;
-
-        if (isWords) {
-            // Task: Figure -> Words (Retrieval Practice)
-            question = `In Ghana, a small farm yields ${num} plantains. Write this number in **words**.`;
-            answer = numToWords(num);
-        } else {
-            // Task: Words -> Figure (Retrieval Practice)
-            const numWords = numToWords(num);
-            question = `A local market records sales of **${numWords}** cedis. Write this number in **figures**.`;
-            answer = String(num);
-        }
-
-        return { question, answer: answer.toLowerCase().trim(), type: isWords ? 'words' : 'figure' };
+    async function initAudio() {
+        if (isAudioInit) return;
+        try {
+            await Tone.start();
+            correctSynth = new Tone.DuoSynth().toDestination();
+            wrongSynth = new Tone.MetalSynth({ envelope: { release: 0.2 } }).toDestination();
+            const kick = new Tone.MembraneSynth().toDestination();
+            afroBeat = new Tone.Loop(t => { kick.triggerAttackRelease("C1", "8n", t); }, "4n");
+            Tone.Transport.bpm.value = 118;
+            isAudioInit = true;
+        } catch (e) { console.log("Audio failed to load"); }
     }
 
-    // Productive Struggle / Cognitive Load Reduction: Level 2 (Larger range, figure/word conversion)
-    function generateLevel2Problem() {
-        const num = Math.floor(Math.random() * 40000) + 10000; // 10,000 to 49,999
-        const isWords = Math.random() < 0.6; // Slightly more words questions
-        let question, answer;
+    function normalize(s) { return s.toString().toLowerCase().replace(/[\s\-,]/g, ''); }
 
-        if (isWords) {
-            question = `A teacher needs to print **${num}** pages. Write this number in **words**.`;
-            answer = numToWords(num);
-        } else {
-            const numWords = numToWords(num);
-            question = `A batch of cocoa is sold for **${numWords}** US Dollars. Write this number in **figures**.`;
-            answer = String(num);
-        }
-        return { question, answer: answer.toLowerCase().trim(), type: isWords ? 'words' : 'figure' };
-    }
-
-    // Complexity: Level 3 (Max range, includes place value/expanded form)
-    function generateLevel3Problem() {
-        const num = Math.floor(Math.random() * 90000) + 10000; // 10,000 to 99,999
-        const problemType = Math.floor(Math.random() * 3);
-        let question, answer;
-
-        if (problemType === 0) {
-            // Task: Figure -> Expanded Form
-            const parts = [];
-            let multiplier = 1;
-            let n = num;
-            while(n > 0) {
-                const digit = n % 10;
-                if (digit > 0) {
-                    parts.unshift(digit * multiplier);
-                }
-                n = Math.floor(n / 10);
-                multiplier *= 10;
-            }
-            question = `A town has **${num}** residents. Write this number in **expanded form** (e.g., 10000+4000+30+1).`;
-            answer = parts.join(' + ');
-            // Normalize expanded form for checking (remove spaces)
-            answer = answer.replace(/\s/g, ''); 
-        } else if (problemType === 1) {
-            // Task: Words -> Figure (Max Range)
-            const numWords = numToWords(num);
-            question = `A donation of **${numWords}** boxes was received. Write this number in **figures**.`;
-            answer = String(num);
-        } else {
-            // Task: Place Value Identification
-            const strNum = String(num);
-            const index = Math.floor(Math.random() * strNum.length);
-            const placeNames = ["Ones", "Tens", "Hundreds", "Thousands", "Ten Thousands"];
-            const place = placeNames[strNum.length - 1 - index];
-            const digit = strNum[index];
-            question = `In the number **${num}**, what is the value of the digit **${digit}** in the ${place} place?`;
-            answer = String(digit * Math.pow(10, strNum.length - 1 - index));
-        }
-
-        return { question, answer: answer.toLowerCase().trim().replace(/\s/g, ''), type: 'complex' };
-    }
-
-    // Helper for number to words conversion (up to 100,000)
-    function numToWords(num) {
-        if (num === 0) return "zero";
+    function numToWords(n) {
         const a = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'];
         const b = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
-
-        function helper(n) {
-            if (n < 20) return a[n];
-            if (n < 100) return b[Math.floor(n / 10)] + (n % 10 !== 0 ? ' ' + a[n % 10] : '');
-            if (n < 1000) return a[Math.floor(n / 100)] + ' hundred' + (n % 100 !== 0 ? ' and ' + helper(n % 100) : '');
-            return helper(Math.floor(n / 1000)) + ' thousand' + (n % 1000 !== 0 ? (n % 1000 < 100 ? ' and ' : ' ') + helper(n % 1000) : '');
-        }
-
-        let words = helper(num);
-        // Special case for numbers > 1000 that don't have a 'hundreds' or 'tens' place (e.g., 20005)
-        if (num > 1000 && num % 1000 !== 0 && num % 100 === 0 && num % 1000 >= 100) {
-             words = words.replace(' thousand and', ' thousand'); // Fix for 20100 
-        }
-
-        return words.replace(/\s+/g, ' ').trim(); // Clean up extra spaces
+        const h = (num) => {
+            if (num < 20) return a[num];
+            if (num < 100) return b[Math.floor(num/10)] + (num%10 !== 0 ? ' ' + a[num%10] : '');
+            if (num < 1000) return a[Math.floor(num/100)] + ' hundred' + (num%100 !== 0 ? ' and ' + h(num%100) : '');
+            return h(Math.floor(num/1000)) + ' thousand' + (num%1000 !== 0 ? (num%1000 < 100 ? ' and ' : ' ') + h(num%1000) : '');
+        };
+        return n === 0 ? "zero" : h(n);
     }
 
-    // --- 3. TONE.JS AUDIO ---
-    let correctSynth, incorrectSynth, afrobeatsLoop, afrobeatsPart, isMusicLoaded = false;
-    
-    function initAudio() {
-        if (isMusicLoaded) return;
-        
-        // Correct Sound: Short, clean sine/triangle
-        correctSynth = new Tone.MembraneSynth().toDestination();
-        correctSynth.volume.value = -10;
-
-        // Incorrect Sound: Lower, noisy metallic tone (FM or Noise)
-        incorrectSynth = new Tone.MetalSynth({
-            frequency: 100,
-            envelope: { attack: 0.01, decay: 0.2, sustain: 0.01, release: 0.5 },
-            harmonicity: 3.1,
-            modulationIndex: 10,
-            resonance: 4000,
-            octaves: 1.5
-        }).toDestination();
-        incorrectSynth.volume.value = -12;
-        
-        // Background Music: Simulating an Afro Pop/Afrobeats loop (115-120 BPM)
-        // We'll use a simple rhythmic sequence for the "Afrobeats" feel (around 115 BPM is 0.52s/beat)
-        Tone.Transport.bpm.value = 118;
-        
-        // A simple, energetic synth rhythm simulating a beat.
-        const bassLine = new Tone.Sequence((time, note) => {
-            if (gameState.isMuted) return;
-            correctSynth.triggerAttackRelease(note, "8n", time);
-        }, ["C3", ["C3", "G2"], "C3", "F2"], "4n").start(0);
-
-        // A second layer for a more complex rhythm (e.g., percussion/high hat)
-        const kickSnare = new Tone.Sequence((time, note) => {
-            if (gameState.isMuted) return;
-            incorrectSynth.triggerAttackRelease("C1", "16n", time, 0.5); // Simulating a kick drum
-            if (note === 1) {
-                correctSynth.triggerAttackRelease("G4", "16n", time); // Simulating a snare/clap
-            }
-        }, [0, 1, 0, 0, 0, 1, 0, 0], "8n").start("4n"); 
-        
-        // Use a single loop that contains both parts
-        afrobeatsLoop = new Tone.Loop(time => {
-            // This loop ensures the entire sequence restarts on time.
-        }, "2m").start(0);
-        
-        Tone.context.lookAhead = 0.1;
-        isMusicLoaded = true;
-    }
-    
-    // Play/Pause/Toggle Music
-    function toggleMusic(play) {
-        if (!isMusicLoaded) {
-            initAudio();
-        }
-        
-        if (play && !Tone.Transport.state !== 'started' && !gameState.isMuted) {
-            Tone.start(); // Must start context on user interaction
-            Tone.Transport.start();
-        } else if (!play || gameState.isMuted) {
-            Tone.Transport.pause();
-        }
-    }
-
-    function playCorrectSound() {
-        if (!gameState.isMuted) {
-            Tone.start();
-            correctSynth.triggerAttackRelease("C5", "8n");
-        }
-    }
-
-    function playIncorrectSound() {
-        if (!gameState.isMuted) {
-            Tone.start();
-            incorrectSynth.triggerAttackRelease("C2", "4n");
-        }
-    }
-
-    // --- 4. GAME FLOW & LOGIC ---
-
-    function loadProgress() {
-        try {
-            const progress = localStorage.getItem('assignmentXProgress');
-            if (progress) {
-                gameState.progress = JSON.parse(progress);
-            }
-        } catch (e) {
-            console.error("Could not load progress from LocalStorage:", e);
-        }
-    }
-
-    function saveProgress() {
-        try {
-            localStorage.setItem('assignmentXProgress', JSON.stringify(gameState.progress));
-            updateLevelsModal(); // Update modal immediately after saving
-        } catch (e) {
-            console.error("Could not save progress to LocalStorage:", e);
-        }
-    }
-
-    function startGame(level) {
-        // Stop any running game
-        stopGame(false); 
-        
-        // Set new level
-        gameState.level = level;
-        
-        // Reset state
-        gameState.score = 0;
-        gameState.correctCount = 0;
-        gameState.timer = GAME_TIME;
-        gameState.isRunning = true;
-        gameState.isPaused = false;
-        
-        // Start audio
-        toggleMusic(true);
-        
-        // Update UI state
-        UI.start.classList.add('hidden');
-        UI.submit.classList.remove('hidden');
-        UI.answerInput.classList.remove('hidden');
-        UI.pause.classList.remove('hidden');
-        UI.stop.classList.remove('hidden');
-        UI.reset.classList.add('hidden');
-        UI.hint.disabled = false;
-        UI.feedback.textContent = '';
-        UI.answerInput.value = '';
-        UI.levelsModal.style.display = 'none';
-
-        updateUI();
-        startTimer();
-        generateNewProblem();
-        
-        // Focus for immediate input (Cognitive Load Reduction)
-        UI.answerInput.focus(); 
-    }
-
-    function stopGame(showFinalMessage = true) {
-        gameState.isRunning = false;
-        clearInterval(gameState.intervalId);
-        toggleMusic(false); // Pause music
-
-        // Evaluate stars
-        const stars = calculateStars();
-        if (stars > gameState.progress[gameState.level]) {
-            gameState.progress[gameState.level] = stars;
-            saveProgress();
-        }
-
-        if (showFinalMessage) {
-            const message = `Game Over! You scored ${gameState.score} points and got ${gameState.correctCount} correct. Stars: ${'★'.repeat(stars)}${'☆'.repeat(3 - stars)}`;
-            UI.problemText.textContent = message;
-            UI.answerInput.classList.add('hidden');
-            UI.submit.classList.add('hidden');
-            UI.hint.disabled = true;
-        }
-
-        // Reset UI state
-        UI.start.classList.remove('hidden');
-        UI.pause.classList.add('hidden');
-        UI.stop.classList.add('hidden');
-        UI.reset.classList.remove('hidden');
-    }
-
-    function pauseGame() {
-        if (gameState.isRunning && !gameState.isPaused) {
-            gameState.isPaused = true;
-            clearInterval(gameState.intervalId);
-            toggleMusic(false);
-            UI.pause.textContent = 'Resume';
-            UI.problemText.textContent = "Game Paused. Click 'Resume' to continue.";
-            UI.submit.classList.add('hidden');
-            UI.answerInput.disabled = true;
-        } else if (gameState.isRunning && gameState.isPaused) {
-            gameState.isPaused = false;
-            startTimer();
-            toggleMusic(true);
-            UI.pause.textContent = 'Pause';
-            UI.problemText.textContent = gameState.currentProblem.question;
-            UI.submit.classList.remove('hidden');
-            UI.answerInput.disabled = false;
-            UI.answerInput.focus();
-        }
-    }
-
-    function startTimer() {
-        gameState.intervalId = setInterval(() => {
-            if (gameState.timer > 0) {
-                gameState.timer--;
-                updateUI();
-            } else {
-                stopGame(true);
-            }
-        }, 1000);
-    }
-
-    function generateNewProblem() {
-        gameState.currentProblem = LEVELS[gameState.level].generate();
-        UI.problemText.innerHTML = gameState.currentProblem.question;
-        UI.answerInput.value = '';
-        UI.answerInput.focus();
-        UI.feedback.textContent = '';
-        UI.hint.disabled = false;
-    }
-
-    function checkAnswer() {
-        if (!gameState.isRunning || gameState.isPaused) return;
-
-        const userAnswer = UI.answerInput.value.trim().toLowerCase().replace(/\s/g, '');
-        const correctAnswer = gameState.currentProblem.answer;
-        
-        // Productive Struggle: Check for common errors (e.g., commas, spaces) 
-        // We strictly enforce no spaces or commas in the answer field, but the logic handles some flexibility.
-
-        if (userAnswer === correctAnswer) {
-            // Immediate Feedback (Correct)
-            playCorrectSound();
-            gameState.score += 10;
-            gameState.correctCount++;
-            UI.feedback.textContent = '✅ Correct! Well done.';
-            UI.feedback.className = 'correct';
+    function gen() {
+        let n = state.level === 1 ? Math.floor(Math.random()*9000)+1000 : state.level === 2 ? Math.floor(Math.random()*40000)+10000 : Math.floor(Math.random()*50000)+50000;
+        const words = numToWords(n);
+        if (Math.random() > 0.5) {
+            document.getElementById('problem-text').innerHTML = `Write <b>${n.toLocaleString()}</b> in words:`;
+            state.currentA = normalize(words);
+            state.hint = `Starts with "${words.split(' ')[0]}..."`;
         } else {
-            // Immediate Feedback (Incorrect)
-            playIncorrectSound();
-            gameState.score = Math.max(0, gameState.score - 5); // Penalty for productive struggle
-            UI.feedback.textContent = `❌ Incorrect. The correct answer was: ${correctAnswer}.`; // Retrieval Practice: Show correct answer
-            UI.feedback.className = 'incorrect';
+            document.getElementById('problem-text').innerHTML = `Write <b>"${words}"</b> in figures:`;
+            state.currentA = normalize(n.toString());
+            state.hint = `It is a ${n.toString().length}-digit number.`;
         }
+        document.getElementById('answer-input').value = '';
+    }
 
-        updateUI();
+    function updateTheme(l) {
+        document.getElementById('game-wrapper').style.background = themes[l];
+        document.getElementById('game-title').innerText = l === 3 ? "AssignmentX Expert" : l === 2 ? "AssignmentX Intermediate" : "AssignmentX Numbers";
+    }
 
-        // Check if level is complete
-        if (gameState.correctCount >= QUESTIONS_PER_LEVEL) {
-            stopGame(true);
+    async function start(l = 1) {
+        await initAudio();
+        state.level = l; state.score = 0; state.timer = 600; state.active = true;
+        updateTheme(l);
+        document.getElementById('start-btn').classList.add('hidden');
+        document.getElementById('answer-input').classList.remove('hidden');
+        document.getElementById('submit-btn').classList.remove('hidden');
+        document.getElementById('levels-modal').style.display = 'none';
+        if (!state.muted && afroBeat) { Tone.Transport.start(); afroBeat.start(0); }
+        gen(); updateStats();
+        if (state.interval) clearInterval(state.interval);
+        state.interval = setInterval(() => { state.timer--; updateStats(); if(state.timer<=0) end(); }, 1000);
+    }
+
+    function check() {
+        const user = normalize(document.getElementById('answer-input').value);
+        const f = document.getElementById('feedback');
+        if (user === state.currentA) {
+            state.score += 10; f.innerHTML = "✅ CORRECT!"; f.className = "correct";
+            if (!state.muted && correctSynth) correctSynth.triggerAttackRelease("C4", "8n");
+            setTimeout(() => { f.innerText = ''; gen(); }, 1000);
         } else {
-            // Delay before generating new problem for feedback assimilation
-            setTimeout(generateNewProblem, 3000); 
+            f.innerHTML = "❌ TRY AGAIN"; f.className = "incorrect";
+            if (!state.muted && wrongSynth) wrongSynth.triggerAttackRelease("G2", "4n");
         }
-        
-        UI.hint.disabled = true; // Disable hint immediately after submission
+        updateStats();
     }
 
-    function showHint() {
-        const hintText = LEVELS[gameState.level].hintExample;
-        UI.feedback.textContent = `💡 Hint: ${hintText}`;
-        UI.feedback.className = '';
-        // Small score penalty for using a hint (encourages productive struggle)
-        gameState.score = Math.max(0, gameState.score - 1); 
-        updateUI();
+    function end() {
+        state.active = false; clearInterval(state.interval); if(Tone) Tone.Transport.stop();
+        document.getElementById('problem-text').innerHTML = `DONE!<br>Final Score: ${state.score}`;
+        document.getElementById('start-btn').classList.remove('hidden');
+        document.getElementById('answer-input').classList.add('hidden');
+        document.getElementById('submit-btn').classList.add('hidden');
     }
-    
-    function resetScores() {
-        if (confirm("Are you sure you want to reset all game progress (Stars and Scores)? This cannot be undone.")) {
-            gameState.progress = { 1: 0, 2: 0, 3: 0 };
-            saveProgress();
-            loadProgress(); // Reload to confirm reset
-            updateUI(); // Update display
-            updateLevelsModal(); // Update modal
-            UI.problemText.textContent = "Scores have been reset. Click Start to begin a new game.";
-            gameState.level = 1; // Default to Level 1
+
+    function updateStats() {
+        document.getElementById('score-disp').innerText = state.score;
+        document.getElementById('level-disp').innerText = state.level;
+        const m = Math.floor(state.timer/60), s = state.timer%60;
+        document.getElementById('timer-disp').innerText = `${m}:${s<10?'0':''}${s}`;
+    }
+
+    function toggleFullscreen() {
+        const elem = document.getElementById('game-wrapper');
+        if (!document.fullscreenElement) {
+            if (elem.requestFullscreen) elem.requestFullscreen();
+            else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
+            else if (elem.msRequestFullscreen) elem.msRequestFullscreen();
+        } else {
+            if (document.exitFullscreen) document.exitFullscreen();
         }
     }
-    
-    function calculateStars() {
-        if (gameState.correctCount < QUESTIONS_PER_LEVEL) return 0;
 
-        const maxScore = QUESTIONS_PER_LEVEL * 10;
-        const ratio = gameState.score / maxScore;
-
-        if (ratio >= 0.8) return 3;
-        if (ratio >= 0.6) return 2;
-        if (ratio >= 0.4) return 1;
-        return 0;
-    }
-
-
-    // --- 5. UI UPDATES & MODALS ---
-
-    function updateUI() {
-        UI.scoreValue.textContent = gameState.score;
-        UI.correctCount.textContent = `${gameState.correctCount}/${QUESTIONS_PER_LEVEL}`;
-        UI.levelDisplay.textContent = `Level ${gameState.level} - ${LEVELS[gameState.level].title} (${'★'.repeat(gameState.progress[gameState.level])} Star Best)`;
-
-        // Format timer
-        const minutes = Math.floor(gameState.timer / 60);
-        const seconds = gameState.timer % 60;
-        UI.timerValue.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-        
-        // Mute button
-        UI.mute.textContent = gameState.isMuted ? 'Unmute' : 'Mute';
-    }
-
-    function updateLevelsModal() {
-        UI.levelSelectionContainer.innerHTML = ''; // Clear existing
-        const levelKeys = Object.keys(LEVELS).map(Number);
-
-        levelKeys.forEach(key => {
-            const levelInfo = LEVELS[key];
-            const stars = gameState.progress[key] || 0;
-            const isLocked = key > 1 && gameState.progress[key - 1] < 1;
-            const starHtml = `<span class="stars">${'★'.repeat(stars)}${'☆'.repeat(3 - stars)}</span>`;
-            
-            const btn = document.createElement('button');
-            btn.className = `level-select-btn ${isLocked ? 'locked' : ''} ${stars > 0 ? 'unlocked-completed' : ''}`;
-            btn.innerHTML = `
-                <div>Level ${key}: ${levelInfo.title}</div>
-                <div>${starHtml} ${isLocked ? '🔒' : 'Select'}</div>
-            `;
-            
-            if (!isLocked) {
-                btn.onclick = () => startGame(key);
-            }
-
-            UI.levelSelectionContainer.appendChild(btn);
-        });
-    }
-
-    function toggleMute() {
-        gameState.isMuted = !gameState.isMuted;
-        toggleMusic(gameState.isRunning && !gameState.isPaused);
-        updateUI();
-    }
-    
-    // --- 6. EVENT LISTENERS ---
-
-    UI.start.addEventListener('click', () => startGame(gameState.level));
-    UI.submit.addEventListener('click', checkAnswer);
-    UI.pause.addEventListener('click', pauseGame);
-    UI.stop.addEventListener('click', () => stopGame(true));
-    UI.reset.addEventListener('click', resetScores);
-    UI.hint.addEventListener('click', showHint);
-    UI.mute.addEventListener('click', toggleMute);
-    
-    UI.levels.addEventListener('click', () => {
-        updateLevelsModal();
-        UI.levelsModal.style.display = 'flex';
-    });
-
-    // Close modal via X button
-    UI.levelsModal.querySelector('.close-btn').onclick = () => {
-        UI.levelsModal.style.display = 'none';
+    document.getElementById('start-btn').onclick = () => start(1);
+    document.getElementById('submit-btn').onclick = check;
+    document.getElementById('full-btn').onclick = toggleFullscreen;
+    document.getElementById('lvl-btn').onclick = () => {
+        const list = document.getElementById('level-list'); list.innerHTML = '';
+        for (let i = 1; i <= 3; i++) {
+            const card = document.createElement('div'); card.className = 'level-card';
+            card.innerHTML = `<span>Level ${i}</span><span>⭐</span>`;
+            card.onclick = () => start(i); list.appendChild(card);
+        }
+        document.getElementById('levels-modal').style.display = 'flex';
     };
-
-    // Close modal via outside click
-    window.onclick = (event) => {
-        if (event.target == UI.levelsModal) {
-            UI.levelsModal.style.display = 'none';
-        }
-    };
-    
-    // Global Keyboard Listeners (Cognitive Load Reduction)
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && gameState.isRunning && !gameState.isPaused) {
-            checkAnswer();
-            e.preventDefault();
-        } else if (e.key === 'L' || e.key === 'l') {
-            UI.levelsModal.style.display === 'flex' ? UI.levelsModal.style.display = 'none' : UI.levels.click();
-            e.preventDefault();
-        }
-    });
-
-    // --- 7. INITIALIZATION ---
-
-    function init() {
-        loadProgress();
-        // Set initial level to the highest unlocked level, or 1
-        let initialLevel = 1;
-        for (let i = 3; i >= 1; i--) {
-            if (gameState.progress[i] > 0) {
-                initialLevel = i;
-                break;
-            } else if (i > 1 && gameState.progress[i-1] > 0) {
-                initialLevel = i;
-                break;
-            }
-        }
-        gameState.level = initialLevel;
-        updateUI();
-        initAudio(); // Load audio context
-        
-        // Initial button state
-        UI.pause.textContent = 'Pause';
-        UI.reset.classList.remove('hidden');
-        UI.start.classList.remove('hidden');
-        UI.stop.classList.add('hidden');
-        
-        // Initial message
-        UI.problemText.innerHTML = `Welcome to the Challenge! You're on Level ${gameState.level}. Click **Start** to begin or **Levels** to choose.`;
-    }
-
-    init();
+    document.getElementById('hint-btn').onclick = () => { document.getElementById('feedback').innerText = `💡 ${state.hint}`; state.score = Math.max(0, state.score - 2); updateStats(); };
+    document.getElementById('reset-btn').onclick = () => { localStorage.clear(); location.reload(); };
+    document.getElementById('mute-btn').onclick = () => { state.muted = !state.muted; document.getElementById('mute-btn').innerText = state.muted ? "Unmute" : "Mute"; if(state.muted) Tone.Transport.pause(); else if(state.active) Tone.Transport.start(); };
+    document.getElementById('answer-input').onkeydown = (e) => { if (e.key === 'Enter') check(); };
 </script>
-
 </body>
 </html>
