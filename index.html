@@ -5,177 +5,185 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AssignmentX Numbers Game Challenge</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/tone@14.7.58/build/Tone.js"></script>
     <style>
         :root {
-            --mathly-grey-dark: #2c3e50;
-            --mathly-grey-light: #ecf0f1;
             --mathly-blue: #3498db;
             --mathly-green: #2ecc71;
             --mathly-red: #e74c3c;
             --mathly-yellow: #f1c40f;
-            --lvl-bg: linear-gradient(135deg, #1a2a6c 0%, #2b3952 100%);
+            --glass-blue: rgba(15, 23, 42, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.15);
         }
+
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #0f172a; }
 
         #game-wrapper {
             position: relative;
-            width: 100%;
-            height: 100vh;
-            background: var(--lvl-bg);
-            transition: background 0.8s ease;
-            color: var(--mathly-grey-light);
+            width: 100%; height: 100vh;
+            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+            color: #f1f5f9;
             font-family: 'Inter', sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
+            display: flex; justify-content: center; align-items: center;
         }
 
-        /* Initial Game Background Tapestry */
-        .bg-symbols {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            font-size: 10vw; color: rgba(255, 255, 255, 0.03);
-            pointer-events: none; z-index: 0; font-weight: 900;
-            display: flex; flex-wrap: wrap; justify-content: center; align-items: center;
-            overflow: hidden;
+        .symbol {
+            position: absolute; bottom: -150px; font-weight: 1000; pointer-events: none;
+            z-index: 0; animation: floatUp linear infinite; opacity: 0.12;
         }
 
+        @keyframes floatUp {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.15; }
+            90% { opacity: 0.15; }
+            100% { transform: translateY(-120vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* Glass Container */
         #game-container {
-            width: 90%; max-width: 500px; padding: 25px;
-            background: rgba(0, 0, 0, 0.35); border-radius: 20px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1);
-            z-index: 1; text-align: center;
+            width: 95%; max-width: 600px; padding: 35px; z-index: 1; text-align: center;
+            background: var(--glass-blue); border: 1px solid var(--glass-border);
+            border-radius: 28px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
         }
 
-        #stats-bar {
-            display: flex; justify-content: space-between;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 10px; border-radius: 12px; margin-bottom: 20px;
-        }
-        .stat-item { display: flex; flex-direction: column; }
-        .stat-label { font-size: 0.65em; text-transform: uppercase; opacity: 0.7; }
-        .stat-value { font-size: 1.1em; font-weight: 900; color: var(--mathly-blue); }
-
-        #game-area {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 25px; border-radius: 15px; margin-bottom: 20px;
-            min-height: 180px; display: flex; flex-direction: column; justify-content: center;
-        }
-        #problem-text { font-size: 1.2em; font-weight: 700; margin-bottom: 15px; min-height: 60px; line-height: 1.4; }
-
-        input {
-            width: 100%; padding: 12px; font-size: 1.1em; border-radius: 8px; border: 2px solid var(--mathly-blue);
-            background: rgba(0,0,0,0.4); color: white; text-align: center; margin-bottom: 10px; box-sizing: border-box;
-        }
-
-        .btn {
-            width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: 900;
-            cursor: pointer; text-transform: uppercase; transition: 0.2s;
-        }
-        .btn-primary { background: var(--mathly-green); color: var(--mathly-grey-dark); }
-        
-        #controls { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-top: 15px; }
-        .btn-sec { background: var(--mathly-blue); color: white; font-size: 0.6em; padding: 8px 1px; }
-
-        .correct { color: var(--mathly-green); }
-        .incorrect { color: var(--mathly-red); }
-        .hidden { display: none !important; }
-
-        /* Overlays */
+        /* Start Page Styles */
         .overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); display: flex; justify-content: center; align-items: center; z-index: 100;
-            backdrop-filter: blur(5px);
+            background: rgba(2, 6, 23, 0.92); display: flex; justify-content: center; align-items: center; z-index: 100;
+            backdrop-filter: blur(12px);
         }
-        .modal-content { background: var(--mathly-grey-dark); padding: 25px; border-radius: 15px; width: 85%; max-width: 400px; border: 2px solid var(--mathly-blue); }
+        .start-modal {
+            background: rgba(30, 41, 59, 0.7); padding: 40px; border-radius: 30px; 
+            width: 90%; max-width: 500px; border: 1px solid var(--mathly-blue); 
+            box-shadow: 0 0 40px rgba(52, 152, 219, 0.25); text-align: center;
+        }
+
+        .main-title { font-size: 2.2em; font-weight: 900; color: var(--mathly-yellow); margin: 0; letter-spacing: -1px; }
+        .sub-title { font-size: 1.1em; opacity: 0.8; margin: 10px 0 25px 0; line-height: 1.4; color: #cbd5e1; }
+
+        .rules-summary {
+            text-align: left; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 15px;
+            margin-bottom: 25px; border-left: 4px solid var(--mathly-blue); font-size: 0.95em;
+        }
+        .rules-summary ul { padding-left: 20px; margin: 5px 0; color: #94a3b8; }
+
+        /* Level Grid */
+        .level-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 20px; }
+        .level-card {
+            background: rgba(255,255,255,0.05); padding: 20px 10px; border-radius: 18px; 
+            cursor: pointer; border: 1px solid var(--glass-border); transition: 0.3s;
+        }
+        .level-card:hover:not(.locked) { border-color: var(--mathly-green); transform: translateY(-5px); background: rgba(46, 204, 113, 0.1); }
+        .level-card.locked { opacity: 0.4; cursor: not-allowed; filter: grayscale(1); }
+        .level-card b { display: block; font-size: 1.1em; margin-bottom: 5px; color: var(--mathly-blue); }
+        .level-card small { font-size: 0.9em; opacity: 0.6; }
+
+        /* Game UI Elements */
+        #stats-bar {
+            display: flex; justify-content: space-between; background: rgba(0, 0, 0, 0.4);
+            padding: 12px 20px; border-radius: 16px; margin-bottom: 25px;
+        }
+        .stat-value { font-size: 1.2em; font-weight: 800; color: var(--mathly-blue); }
+        input[type="text"] {
+            box-sizing: border-box; width: 100%; padding: 16px; font-size: 1.9em; border-radius: 14px; border: 2px solid #334155;
+            background: rgba(0,0,0,0.4); color: white; text-align: center; margin-bottom: 15px;
+        }
+        .btn-primary { background: var(--mathly-green); color: #0f172a; padding: 15px; width: 100%; border-radius: 14px; border:none; font-weight:900; cursor:pointer; }
+        
+        #controls { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; margin-top: 25px; }
+        .btn-sec { background: rgba(255,255,255,0.05); color: #94a3b8; font-size: 1.4em; padding: 10px 2px; border: 1px solid rgba(255,255,255,0.1); cursor:pointer; border-radius: 8px;}
     </style>
 </head>
-<body style="margin:0; padding:0;">
+<body>
 
 <div id="game-wrapper">
-    <div class="bg-symbols">Σ ∫ ∞ ≠ ≈ ± √ π α β γ Δ θ Ω</div>
-    
-    <div id="rules-page" class="overlay">
-        <div class="modal-content">
-            <header>
-            <h2 id="game-title" style="color: var(--mathly-yellow); margin-bottom: 10px;">AssignmentX Numbers Game Challenge</h2>
-            <p>B4.1.1.1.2 Read and write numbers in figures and in words up 100,000</p>
-            </header>
-            <h2 id="rules-title" style="color: var(--mathly-yellow); margin-top: 0; text-align: center;">📜 Game Rules</h2>
-            <div id="end-message" style="margin-bottom: 15px; text-align: center; display: none;"></div>
-            <ul id="rules-info" style="line-height: 1.6; margin: 20px 0; padding-left: 20px;">
-                <li><b>Goal:</b> Convert numbers to words and back.</li>
-                <li><b>Points:</b> Get <b>+10 points</b> per correct answer.</li>
-                <li><b>Hints:</b> Cost <b>-2 points</b> each.</li>
-                <li><b>Time:</b> 10 minutes to reach the top!</li>
-            </ul>
-            <button id="start-btn" class="btn btn-primary">Start Game!</button>
+    <div id="start-page" class="overlay">
+        <div class="start-modal">
+            <h1 class="main-title">AssignmentX Numbers Game Challenge</h1>
+            <p class="sub-title"><b>B4.1.1.1.2</b><br>Read and write numbers in figures and words up to 100,000</p>
+            
+            <div class="rules-summary">
+                <strong>Game Rules and Instructions:</strong>
+                <ul>
+                    <li>Read and write numbers accurately to unlock levels.</li>
+                    <li>Earn <b>100 or more points</b> to progress to the next level.</li>
+                    <li>You get <b>5 second</b> study period to review a wrong answer.</li>
+                    <li>Hints are available but cost <b>-2 points</b>.</li>
+                </ul>
+            </div>
+
+            <div id="level-grid" class="level-grid">
+                </div>
+            
+            <button id="reset-progress" style="margin-top:30px; background:transparent; border:none; color:var(--mathly-red); font-size:0.95em; cursor:pointer; opacity:0.6;">Reset All Data</button>
         </div>
     </div>
-    
+
     <div id="game-container">
-        <header>
-            <h2 id="game-title" style="color: var(--mathly-yellow); margin-bottom: 10px;">AssignmentX Numbers Game</h2>
-            <p>B4.1.1.1.2 Read and write numbers in figures and in words up 100,000</p>
-        </header>
+        <div style="margin-bottom:15px">
+            <h2 style="font-size: 2.4em; color: var(--mathly-yellow); margin:0;">Numbers Game Challenge</h2>
+            <p id="level-title-display" style="font-size: 1.2em; opacity:0.6;">Level 1: 1,000 - 9,999</p>
+        </div>
 
         <div id="stats-bar">
-            <div class="stat-item"><span class="stat-label">Score</span><span id="score-disp" class="stat-value">0</span></div>
-            <div class="stat-item"><span class="stat-label">Lvl</span><span id="level-disp" class="stat-value">1</span></div>
-            <div class="stat-item"><span class="stat-label">Time</span><span id="timer-disp" class="stat-value">10:00</span></div>
+            <div class="stat-item"><span style="font-size:1.2em; display:block;">SCORE</span><span id="score-disp" class="stat-value">0</span></div>
+            <div class="stat-item"><span style="font-size:1.2em; display:block;">TARGET</span><span class="stat-value">100</span></div>
+            <div class="stat-item"><span style="font-size:1.2em; display:block;">TIMER</span><span id="timer-disp" class="stat-value">10:00</span></div>
         </div>
 
         <div id="game-area">
             <div id="game-content-box" style="visibility: hidden;">
-                <div id="problem-text">Press Start to Begin!</div>
-                <input type="text" id="answer-input" class="hidden" placeholder="Type answer here..." autocomplete="off">
-                <button id="submit-btn" class="btn btn-primary hidden">Submit</button>
+                <div id="problem-text"style="font-size: 1.4em; margin-bottom: 25px">...</div>
+                <input type="text" id="answer-input" placeholder="Enter Answer Here..." autocomplete="off">
+                <button id="submit-btn" class="btn-primary"style="font-size: 1.1em;">SUBMIT ANSWER</button>
             </div>
-            <div id="feedback" style="margin-top: 10px; font-weight: 700;"></div>
+            <div id="feedback" style="margin-top: 25px; font-size: 1.1em; height: 50px;"></div>
         </div>
 
         <div id="controls">
-            <button id="lvl-btn" class="btn btn-sec">Levels</button>
-            <button id="hint-btn" class="btn btn-sec">Hint</button>
-            <button id="mute-btn" class="btn btn-sec">Mute</button>
-            <button id="pause-btn" class="btn btn-sec">Pause</button>
-            <button id="reset-btn" class="btn btn-sec" style="background:var(--mathly-red)">Reset</button>
-        </div>
-    </div>
-
-    <div id="levels-modal" class="overlay" style="display:none;">
-        <div class="modal-content">
-            <h3 style="color: var(--mathly-yellow);">Select Difficulty</h3><br>
-            <div id="level-list"></div>
-            <button onclick="document.getElementById('levels-modal').style.display='none'" class="btn btn-sec" style="margin-top:10px; width:100%;">Close</button>
+            <button id="lvl-btn" class="btn-sec">Levels</button>
+            <button id="hint-btn" class="btn-sec">Hint</button>
+            <button id="mute-btn" class="btn-sec">Mute</button>
+            <button id="pause-btn" class="btn-sec">Pause</button>
+            <button id="full-btn" class="btn-sec" title="Fullscreen"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm0-4h2V7h3V5H5v5zm10 9h-3v2h5v-5h-2v3zm0-14V5h-5v2h3v3h2V5z"/></svg></button>
+            <button id="reset-btn" class="btn-sec" style="color:var(--mathly-red)">Reset</button>
         </div>
     </div>
 </div>
 
 <script>
+    const audioFiles = {
+        correct: new Audio('https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3'),
+        wrong: new Audio('https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3'),
+        bg: new Audio('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3')
+    };
+    audioFiles.bg.loop = true; audioFiles.bg.volume = 0.15;
+
     let state = { 
-        active: false, paused: false, score: 0, level: 1, timer: 600, currentA: '', hint: '', muted: false,
-        highScores: JSON.parse(localStorage.getItem('ax_high_scores')) || {1:0, 2:0, 3:0}
-    };
-    let correctSynth, wrongSynth, afroBeat, isAudioInit = false;
-
-    const themes = {
-        1: "linear-gradient(135deg, #1a2a6c 0%, #2b3952 100%)",      
-        2: "linear-gradient(135deg, #4b0082 0%, #1a1a2e 100%)",      
-        3: "linear-gradient(135deg, #e67e22 0%, #d35400 100%)"       
+        active: false, paused: false, inReview: false, muted: false,
+        score: 0, level: 1, timer: 600, 
+        currentA: '', rawA: '', hint: '',
+        highScores: JSON.parse(localStorage.getItem('ax_high_scores')) || {1:0, 2:0, 3:0},
+        unlocked: JSON.parse(localStorage.getItem('ax_unlocked')) || {1:true, 2:false, 3:false}
     };
 
-    async function initAudio() {
-        if (isAudioInit) return;
-        try {
-            await Tone.start();
-            correctSynth = new Tone.DuoSynth().toDestination();
-            wrongSynth = new Tone.MetalSynth({ envelope: { release: 0.2 } }).toDestination();
-            afroBeat = new Tone.Loop(t => { (new Tone.MembraneSynth().toDestination()).triggerAttackRelease("C1", "8n", t); }, "4n");
-            isAudioInit = true;
-        } catch (e) {}
+    function createSymbols() {
+        const wrapper = document.getElementById('game-wrapper');
+        const chars = ['+', '−', '×', '÷', 'Σ', 'π', '√', '∞', '%', 'Δ'];
+        setInterval(() => {
+            if(document.querySelectorAll('.symbol').length > 15) return;
+            const s = document.createElement('div');
+            s.className = 'symbol';
+            s.innerText = chars[Math.floor(Math.random() * chars.length)];
+            s.style.left = Math.random() * 100 + 'vw';
+            s.style.fontSize = (Math.random() * 100 + 60) + 'px';
+            s.style.color = ['#3498db', '#2ecc71', '#e74c3c', '#f1c40f'][Math.floor(Math.random()*4)];
+            s.style.animationDuration = (Math.random() * 12 + 8) + 's';
+            wrapper.appendChild(s);
+            setTimeout(() => s.remove(), 15000);
+        }, 1000);
     }
+    createSymbols();
 
     function normalize(s) { return s.toString().toLowerCase().replace(/[\s\-,]/g, ''); }
 
@@ -192,111 +200,174 @@
     }
 
     function gen() {
-        let n = state.level === 1 ? Math.floor(Math.random()*9000)+1000 : state.level === 2 ? Math.floor(Math.random()*40000)+10000 : Math.floor(Math.random()*50000)+50000;
+        state.inReview = false;
+        document.getElementById('answer-input').disabled = false;
+        let n;
+        if(state.level === 1) n = Math.floor(Math.random()*9000)+1000;
+        else if(state.level === 2) n = Math.floor(Math.random()*40000)+10000;
+        else n = Math.floor(Math.random()*50000)+50000;
+
         const words = numToWords(n);
         if (Math.random() > 0.5) {
-            document.getElementById('problem-text').innerHTML = `Write <b>${n.toLocaleString()}</b> in words:`;
-            state.currentA = normalize(words);
+            document.getElementById('problem-text').innerHTML = `Convert <b>${n.toLocaleString()}</b><br>into words:`;
+            state.currentA = normalize(words); state.rawA = words;
             state.hint = `Starts with "${words.split(' ')[0]}..."`;
         } else {
-            document.getElementById('problem-text').innerHTML = `Write <b>"${words}"</b> in figures:`;
-            state.currentA = normalize(n.toString());
+            document.getElementById('problem-text').innerHTML = `Write <b>"${words}"</b><br>in figures:`;
+            state.currentA = normalize(n.toString()); state.rawA = n.toLocaleString();
             state.hint = `It is a ${n.toString().length}-digit number.`;
         }
         document.getElementById('answer-input').value = '';
-    }
-
-    async function start(l = 1) {
-        await initAudio();
-        state.level = l; state.score = 0; state.timer = 600; state.active = true; state.paused = false;
-        document.getElementById('game-wrapper').style.background = themes[l];
-        document.getElementById('rules-page').style.display = 'none';
-        document.getElementById('levels-modal').style.display = 'none';
-        document.getElementById('answer-input').classList.remove('hidden');
-        document.getElementById('submit-btn').classList.remove('hidden');
-        document.getElementById('game-content-box').style.visibility = "visible";
         document.getElementById('feedback').innerText = '';
-        if (!state.muted && afroBeat) { Tone.Transport.start(); afroBeat.start(0); }
-        gen(); updateStats();
-        if (state.interval) clearInterval(state.interval);
-        state.interval = setInterval(() => { if(!state.paused) { state.timer--; updateStats(); if(state.timer<=0) end(); } }, 1000);
     }
 
-    function togglePause() {
-        if (!state.active) return;
-        state.paused = !state.paused;
-        document.getElementById('pause-btn').innerText = state.paused ? "Resume" : "Pause";
-        document.getElementById('game-content-box').style.visibility = state.paused ? "hidden" : "visible";
-        if (state.paused) Tone.Transport.pause(); else if(!state.muted) Tone.Transport.start();
+    function initStartPage() {
+        state.active = false;
+        document.getElementById('start-page').style.display = 'flex';
+        const grid = document.getElementById('level-grid');
+        grid.innerHTML = '';
+        [1, 2, 3].forEach(l => {
+            const card = document.createElement('div');
+            card.className = `level-card ${!state.unlocked[l] ? 'locked' : ''}`;
+            card.innerHTML = `<b>Lvl ${l}</b><small>Best: ${state.highScores[l]}</small>${!state.unlocked[l] ? '🔒' : ''}`;
+            if(state.unlocked[l]) card.onclick = () => startGame(l);
+            grid.appendChild(card);
+        });
     }
+
+          function startGame(l) {
+            state.level = l;
+            state.score = 0;
+            state.timer = 600; // 10 minutes
+            state.active = true;
+            state.paused = false;
+            state.inReview = false;
+
+            document.getElementById('start-page').style.display = 'none';
+            document.getElementById('game-content-box').style.visibility = "visible";
+            document.getElementById('level-title-display').innerText =
+                `Level ${l}: ${l==1?'1,000 - 9,999':l==2?'10,000 - 49,999':'50,000 - 100,000'}`;
+
+            if (!state.muted) {
+                audioFiles.bg.currentTime = 0;
+                audioFiles.bg.play().catch(e => {});
+            }
+
+            gen();
+            updateStats();
+
+            // Clear any previous timer
+            if (state.interval) {
+                clearInterval(state.interval);
+                state.interval = null;
+            }
+
+            state.interval = setInterval(() => {
+                if (!state.paused && !state.inReview && state.active) {
+                    state.timer--;
+
+                    if (state.timer <= 0) {
+                        state.timer = 0;
+                        updateStats();
+                        endGame();
+                        return;
+                    }
+
+                    updateStats();
+                }
+            }, 1000);
+        }
+
+                function endGame() {
+            // Stop timer
+            if (state.interval) {
+                clearInterval(state.interval);
+                state.interval = null;
+            }
+
+            state.active = false;
+
+            // Save high score
+            if (state.score > state.highScores[state.level]) {
+                state.highScores[state.level] = state.score;
+                localStorage.setItem('ax_high_scores', JSON.stringify(state.highScores));
+            }
+
+            // Stop background music
+            audioFiles.bg.pause();
+
+            // Hide game and show start page
+            document.getElementById('game-content-box').style.visibility = "hidden";
+            initStartPage();
+
+            alert("⏰ Time's Up! Final Score: " + state.score);
+        }
 
     function check() {
-        if(state.paused) return;
+        if(state.paused || state.inReview) return;
         const user = normalize(document.getElementById('answer-input').value);
         const f = document.getElementById('feedback');
         if (user === state.currentA) {
-            state.score += 10; f.innerHTML = "✅ CORRECT!"; f.className = "correct";
-            if (!state.muted && correctSynth) correctSynth.triggerAttackRelease("C4", "8n");
-            setTimeout(() => { f.innerText = ''; gen(); }, 1000);
+            if(!state.muted) { audioFiles.correct.currentTime = 0; audioFiles.correct.play(); }
+            state.score += 10; f.innerHTML = "<span style='color:var(--mathly-green); font-weight:bold;'>✓ CORRECT!</span>";
+            if (state.score > state.highScores[state.level]) state.highScores[state.level] = state.score;
+            if (state.score >= 100 && state.level < 3) state.unlocked[state.level+1] = true;
+            localStorage.setItem('ax_high_scores', JSON.stringify(state.highScores));
+            localStorage.setItem('ax_unlocked', JSON.stringify(state.unlocked));
+            setTimeout(gen, 1000);
         } else {
-            f.innerHTML = "❌ TRY AGAIN"; f.className = "incorrect";
-            if (!state.muted && wrongSynth) wrongSynth.triggerAttackRelease("G2", "4n");
+            if(!state.muted) { audioFiles.wrong.currentTime = 0; audioFiles.wrong.play(); }
+            state.inReview = true; document.getElementById('answer-input').disabled = true;
+            f.innerHTML = `<div style='color:var(--mathly-red)'>QUESTION REVIEW:<br><b>${state.rawA}</b></div>`;
+            setTimeout(gen, 5000);
         }
         updateStats();
     }
 
-    function end() {
-        state.active = false; clearInterval(state.interval); Tone.Transport.stop();
-        const isNewRecord = state.score > state.highScores[state.level];
-        if(isNewRecord) {
-            state.highScores[state.level] = state.score;
-            localStorage.setItem('ax_high_scores', JSON.stringify(state.highScores));
-        }
-        document.getElementById('rules-title').innerText = "🏁 Finished!";
-        const endMsg = document.getElementById('end-message');
-        endMsg.style.display = 'block';
-        endMsg.innerHTML = `Score: <b>${state.score}</b><br>${isNewRecord ? '🏆 NEW RECORD!' : 'Best: ' + state.highScores[state.level]}`;
-        document.getElementById('rules-info').style.display = 'none';
-        document.getElementById('rules-page').style.display = 'flex';
-        document.getElementById('start-btn').innerText = "Play Again";
-    }
-
     function updateStats() {
         document.getElementById('score-disp').innerText = state.score;
-        document.getElementById('level-disp').innerText = state.level;
         const m = Math.floor(state.timer/60), s = state.timer%60;
         document.getElementById('timer-disp').innerText = `${m}:${s<10?'0':''}${s}`;
     }
 
-    document.getElementById('start-btn').onclick = () => {
-        document.getElementById('rules-info').style.display = 'block';
-        document.getElementById('end-message').style.display = 'none';
-        start(1);
+    // BUTTON ACTIONS
+    document.getElementById('lvl-btn').onclick = () => { if(confirm("Back to menu?")) initStartPage(); };
+    document.getElementById('lvl-btn').onclick = () => { if(confirm("Back to menu?")) {endGame(); } };
+    document.getElementById('mute-btn').onclick = () => {
+        state.muted = !state.muted;
+        document.getElementById('mute-btn').innerText = state.muted ? "Unmute" : "Mute";
+        if (state.muted) audioFiles.bg.pause(); else if (state.active) audioFiles.bg.play();
     };
+    document.getElementById('pause-btn').onclick = () => {
+        state.paused = !state.paused;
+        document.getElementById('pause-btn').innerText = state.paused ? "Resume" : "Pause";
+        document.getElementById('game-content-box').style.visibility = state.paused ? "hidden" : "visible";
+    };
+    document.getElementById('reset-btn').onclick = () => { if(confirm("Reset Current Level?")) startGame(state.level); };
+    document.getElementById('reset-progress').onclick = () => { if(confirm("Wipe ALL level Progress?")) { localStorage.clear(); location.reload(); }};
     document.getElementById('submit-btn').onclick = check;
-    document.getElementById('pause-btn').onclick = togglePause;
-    document.getElementById('lvl-btn').onclick = () => {
-        const list = document.getElementById('level-list'); list.innerHTML = '';
-        for (let i = 1; i <= 3; i++) {
-            const card = document.createElement('div');
-            card.style.cssText = "background:rgba(255,255,255,0.05); padding:12px; border-radius:10px; margin-bottom:8px; cursor:pointer; border:1px solid var(--mathly-blue);";
-            card.innerHTML = `<b>Level ${i}</b> <span style="float:right">Best: ${state.highScores[i]}</span>`;
-            card.onclick = () => start(i); list.appendChild(card);
+    document.getElementById('hint-btn').onclick = () => {if (state.paused || state.inReview || !state.active) return;
+    document.getElementById('feedback').innerHTML =`<span style="color:var(--mathly-yellow)">${state.hint}</span>`; state.score = Math.max(0, state.score - 2);
+    updateStats(); };
+
+    document.getElementById('full-btn').onclick = () => {
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+        else document.exitFullscreen();
+    };
+       
+       document.getElementById('full-btn').onclick = () => {
+        const btn = document.getElementById('full-btn');
+
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen();
+            btn.innerHTML = "⤢"; // exit icon
+        } else {
+            document.exitFullscreen();
+            btn.innerHTML = "⛶"; // fullscreen icon
         }
-        document.getElementById('levels-modal').style.display = 'flex';
     };
-    document.getElementById('hint-btn').onclick = () => { 
-        if(state.paused) return;
-        document.getElementById('feedback').innerText = `💡 ${state.hint}`; 
-        state.score = Math.max(0, state.score - 2); updateStats(); 
-    };
-    document.getElementById('reset-btn').onclick = () => { if(confirm("Reset everything?")) { localStorage.clear(); location.reload(); } };
-    document.getElementById('mute-btn').onclick = () => { 
-        state.muted = !state.muted; 
-        document.getElementById('mute-btn').innerText = state.muted ? "Unmute" : "Mute"; 
-        if(state.muted) Tone.Transport.pause(); else if(state.active && !state.paused) Tone.Transport.start(); 
-    };
-    document.getElementById('answer-input').onkeydown = (e) => { if (e.key === 'Enter') check(); };
+
+    initStartPage();
 </script>
 </body>
 </html>
